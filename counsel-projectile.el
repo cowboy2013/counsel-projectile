@@ -385,11 +385,22 @@ on `counsel-find-file-ignore-regexp'."
   "Switch project action for `counsel-projectile-find-file'."
   (counsel-projectile-switch-project 'counsel-projectile-switch-project-action-find-file))
 
+(defun counsel-projectile--find-file-icon (str)
+  "Return a Nerd Icon prefix for STR, or an empty string."
+  (if (or
+	   (not (require 'nerd-icons nil t))
+       (not (fboundp 'nerd-icons-icon-for-file)))
+      ""
+    (let ((icon (or (nerd-icons-icon-for-file str) "")))
+      (if (string= icon "") "" (concat icon " ")))))
+
 (defun counsel-projectile-find-file-transformer (str)
   "Transform non-visited file names with `ivy-virtual' face."
-  (if (not (get-file-buffer (projectile-expand-root str)))
-      (propertize str 'face 'ivy-virtual)
-    str))
+  (let ((display-str
+         (if (not (get-file-buffer (projectile-expand-root str)))
+             (propertize str 'face 'ivy-virtual)
+           str)))
+    (concat (counsel-projectile--find-file-icon str) display-str)))
 
 ;;;###autoload
 (defun counsel-projectile-find-file (&optional arg dwim)
