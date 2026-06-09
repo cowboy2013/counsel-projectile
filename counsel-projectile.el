@@ -601,12 +601,27 @@ names as in `ivy--buffer-list', and remove current buffer if
   "Switch project action for `counsel-projectile-switch-to-buffer'."
   (counsel-projectile-switch-project 'counsel-projectile-switch-project-action-switch-to-buffer))
 
+(defun counsel-projectile--buffer-icon (str)
+  "Return a Nerd Icon prefix for buffer STR, or an empty string."
+  (if (or
+       (not (require 'nerd-icons nil t))
+       (not (fboundp 'nerd-icons-icon-for-buffer)))
+      ""
+    (let ((buf (get-buffer str))
+          icon)
+      (when buf
+        (with-current-buffer buf
+          (setq icon (or (nerd-icons-icon-for-buffer) ""))))
+      (if (or (not icon) (string= icon "")) "" (concat icon " ")))))
+
 (defun counsel-projectile-switch-to-buffer-transformer (str)
   "Transform candidate STR when switching project buffers.
 
 This simply applies the same transformer as in `ivy-switch-buffer', which is `ivy-switch-buffer-transformer' by default but could have been modified e.g. by the ivy-rich package."
-  (funcall (ivy-alist-setting ivy--display-transformers-alist 'ivy-switch-buffer)
-           str))
+  (let ((display-str
+         (funcall (ivy-alist-setting ivy--display-transformers-alist 'ivy-switch-buffer)
+                  str)))
+    (concat (counsel-projectile--buffer-icon str) display-str)))
 
 (defun counsel-projectile--switch-to-buffer-update-fn ()
   "Update function for `counsel-projectile--switch-to-buffer'."
